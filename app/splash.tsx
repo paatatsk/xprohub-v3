@@ -71,12 +71,20 @@ export default function SplashScreenRoute() {
     }, 200);
   }, []);
 
-  // Auth check
+  // Auth check — 3-second timeout so a slow/offline Supabase never blocks navigation
   useEffect(() => {
+    const fallback = setTimeout(() => {
+      setDestination('/(onboarding)/welcome');
+      setAuthChecked(true);
+    }, 3000);
+
     supabase.auth.getSession().then(({ data: { session } }) => {
+      clearTimeout(fallback);
       setDestination(session ? '/(tabs)' : '/(onboarding)/welcome');
       setAuthChecked(true);
     });
+
+    return () => clearTimeout(fallback);
   }, []);
 
   // Minimum display timer

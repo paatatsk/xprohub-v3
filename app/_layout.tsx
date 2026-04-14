@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import * as SplashScreen from 'expo-splash-screen';
@@ -6,11 +6,31 @@ import { useAuth } from '../hooks/useAuth';
 
 SplashScreen.preventAutoHideAsync();
 
+const AUTH_TIMEOUT_MS = 3000;
+
 export default function RootLayout() {
   const { session, loading } = useAuth();
   const router = useRouter();
   const segments = useSegments();
+  const timedOut = useRef(false);
 
+  // Drop the native Expo splash immediately so the JS screen renders
+  useEffect(() => {
+    SplashScreen.hideAsync();
+  }, []);
+
+  // Escape hatch — if auth hasn't resolved in 3s, go to welcome anyway
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (loading) {
+        timedOut.current = true;
+        router.replace('/(onboarding)/welcome');
+      }
+    }, AUTH_TIMEOUT_MS);
+    return () => clearTimeout(timer);
+  }, []);
+
+  // Normal auth-aware routing once loading resolves
   useEffect(() => {
     if (loading) return;
 

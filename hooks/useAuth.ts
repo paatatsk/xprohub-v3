@@ -7,7 +7,11 @@ export function useAuth() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    const timeout = new Promise<{ data: { session: null } }>((resolve) =>
+      setTimeout(() => resolve({ data: { session: null } }), 3000)
+    );
+
+    Promise.race([supabase.auth.getSession(), timeout]).then(({ data: { session } }) => {
       setSession(session);
       setLoading(false);
     });
