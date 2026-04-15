@@ -8,6 +8,7 @@ import { useRouter } from 'expo-router';
 import { supabase } from '../../lib/supabase';
 import { Button } from '../../components/Button';
 import { Colors, Spacing, Radius } from '../../constants/theme';
+import { useBiometrics } from '../../hooks/useBiometrics';
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -15,6 +16,7 @@ export default function LoginScreen() {
   const [password, setPassword] = useState('');
   const [loading, setLoading]   = useState(false);
   const [error, setError]       = useState('');
+  const { isAvailable, hasCredentials, authenticate, saveCredentials, getCredentials } = useBiometrics();
 
   async function handleLogin() {
     setError('');
@@ -30,8 +32,27 @@ export default function LoginScreen() {
     setLoading(false);
     if (authError) {
       setError(authError.message);
+    } else if (isAvailable) {
+      // Silently save credentials so Face ID works on next visit
+      await saveCredentials(email.trim().toLowerCase(), password);
     }
     // On success: _layout.tsx detects the new session and redirects to /(tabs)
+  }
+
+  async function handleFaceID() {
+    setError('');
+    const passed = await authenticate();
+    if (!passed) return;
+    const creds = await getCredentials();
+    if (!creds) {
+      setError('No saved credentials found. Please sign in with your password first.');
+      return;
+    }
+    setLoading(true);
+    const { error: authError } = await supabase.auth.signInWithPassword(creds);
+    setLoading(false);
+    if (authError) setError(authError.message);
+    // On success: _layout.tsx redirects to /(tabs)
   }
 
   return (
@@ -75,6 +96,18 @@ export default function LoginScreen() {
           <TouchableOpacity onPress={() => router.push('/(auth)/forgot-password')} style={styles.forgotRow}>
             <Text style={styles.forgotText}>Forgot password?</Text>
           </TouchableOpacity>
+
+          {isAvailable && hasCredentials && (
+            <TouchableOpacity style={styles.faceIDButton} onPress={handleFaceID} activeOpacity={0.7}>
+              <View style={styles.faceIDIcon}>
+                <View style={styles.faceIDFace} />
+                <View style={[styles.faceIDEye, styles.faceIDEyeLeft]} />
+                <View style={[styles.faceIDEye, styles.faceIDEyeRight]} />
+                <View style={styles.faceIDMouth} />
+              </View>
+              <Text style={styles.faceIDLabel}>Sign in with Face ID</Text>
+            </TouchableOpacity>
+          )}
 
           <View style={styles.buttonRow}>
             <Button label="SIGN IN" onPress={handleLogin} loading={loading} />
@@ -155,6 +188,58 @@ const styles = StyleSheet.create({
     fontSize: 16,
     height: 52,
     paddingHorizontal: Spacing.md,
+  },
+  faceIDButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 10,
+    marginTop: Spacing.lg,
+    paddingVertical: Spacing.md,
+    borderWidth: 1,
+    borderColor: Colors.gold,
+    borderRadius: Radius.md,
+    backgroundColor: 'transparent',
+  },
+  faceIDIcon: {
+    width: 24,
+    height: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  faceIDFace: {
+    position: 'absolute',
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    borderWidth: 1.5,
+    borderColor: Colors.gold,
+  },
+  faceIDEye: {
+    position: 'absolute',
+    width: 3,
+    height: 3,
+    borderRadius: 1.5,
+    backgroundColor: Colors.gold,
+    top: 7,
+  },
+  faceIDEyeLeft:  { left: 5 },
+  faceIDEyeRight: { right: 5 },
+  faceIDMouth: {
+    position: 'absolute',
+    bottom: 5,
+    width: 10,
+    height: 4,
+    borderBottomLeftRadius: 4,
+    borderBottomRightRadius: 4,
+    borderWidth: 1.5,
+    borderTopWidth: 0,
+    borderColor: Colors.gold,
+  },
+  faceIDLabel: {
+    color: Colors.gold,
+    fontSize: 15,
+    fontWeight: '600',
   },
   forgotRow: {
     alignItems: 'flex-end',
