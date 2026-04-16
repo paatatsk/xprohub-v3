@@ -1,8 +1,9 @@
-import { useEffect, useRef } from 'react';
 import { Stack, useRouter, useSegments } from 'expo-router';
-import { StatusBar } from 'expo-status-bar';
 import * as SplashScreen from 'expo-splash-screen';
+import { StatusBar } from 'expo-status-bar';
+import { useEffect, useRef } from 'react';
 import { useAuth } from '../hooks/useAuth';
+import { supabase } from '../lib/supabase';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -14,12 +15,10 @@ export default function RootLayout() {
   const segments = useSegments();
   const timedOut = useRef(false);
 
-  // Drop the native Expo splash immediately so the JS screen renders
   useEffect(() => {
     SplashScreen.hideAsync();
   }, []);
 
-  // Escape hatch — if auth hasn't resolved in 3s, go to welcome anyway
   useEffect(() => {
     const timer = setTimeout(() => {
       if (loading) {
@@ -30,22 +29,42 @@ export default function RootLayout() {
     return () => clearTimeout(timer);
   }, []);
 
-  // Normal auth-aware routing once loading resolves
   useEffect(() => {
     if (loading) return;
 
     const onSplash = segments[0] === 'splash' || segments.length === 0;
     const inAuthGroup = segments[0] === '(auth)';
     const inOnboarding = segments[0] === '(onboarding)';
+    const inTabs = segments[0] === '(tabs)';
+    const alreadyOnProfileSetup = inOnboarding && segments[1] === 'profile-setup';
 
-    // Splash screen handles its own routing — don't interfere
     if (onSplash) return;
 
-    if (!session && !inAuthGroup && !inOnboarding) {
-      router.replace('/(onboarding)/welcome');
-    } else if (session && (inAuthGroup || inOnboarding)) {
-      router.replace('/(tabs)');
+    if (!session) {
+      if (!inAuthGroup && !inOnboarding) {
+        router.replace('/(onboarding)/welcome');
+      }
+      return;
     }
+
+    // Authenticated user already at the right destination — do nothing.
+    if (inTabs || alreadyOnProfileSetup) return;
+
+    // Authenticated user is somewhere that isn't their final destination
+    // (just signed up, coming back from welcome/login, or app cold-start).
+    // Check Supabase to decide: new user → profile-setup, returning → tabs.
+    supabase
+      .from('profiles')
+      .select('full_name')
+      .eq('id', session.user.id)
+      .single()
+      .then(({ data }) => {
+        if (data?.full_name) {
+          router.replace('/(tabs)');
+        } else {
+          router.replace('/(onboarding)/profile-setup');
+        }
+      });
   }, [session, loading, segments]);
 
   return (
