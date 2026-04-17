@@ -15,16 +15,27 @@ export default function RootLayout() {
   const segments = useSegments();
   const timedOut = useRef(false);
 
+  // Refs keep the timeout closure from reading stale values.
+  // Without these, the timeout captures loading=true at mount and ALWAYS
+  // fires router.replace even after auth has resolved (~3s flash).
+  const loadingRef = useRef(loading);
+  const segmentsRef = useRef(segments);
+  useEffect(() => { loadingRef.current = loading; }, [loading]);
+  useEffect(() => { segmentsRef.current = segments; }, [segments]);
+
   useEffect(() => {
     SplashScreen.hideAsync();
   }, []);
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      if (loading) {
-        timedOut.current = true;
-        router.replace('/(onboarding)/welcome');
-      }
+      // Use ref — not the stale closure value — to check real current state.
+      if (!loadingRef.current) return; // auth already resolved, nothing to do
+      timedOut.current = true;
+      // Guard: don't replace if already on welcome
+      const segs = segmentsRef.current;
+      if (segs[0] === '(onboarding)' && segs[1] === 'welcome') return;
+      router.replace('/(onboarding)/welcome');
     }, AUTH_TIMEOUT_MS);
     return () => clearTimeout(timer);
   }, []);
@@ -41,6 +52,8 @@ export default function RootLayout() {
     if (onSplash) return;
 
     if (!session) {
+      // Guard: already on welcome — do nothing, avoids re-mount flash
+      if (inOnboarding && segments[1] === 'welcome') return;
       if (!inAuthGroup && !inOnboarding) {
         router.replace('/(onboarding)/welcome');
       }
@@ -59,6 +72,9 @@ export default function RootLayout() {
       .eq('id', session.user.id)
       .single()
       .then(({ data }) => {
+        // Guard: read current segments via ref — this callback is async and
+        // segments in the outer closure may be stale by the time it runs.
+        if (segmentsRef.current[0] === '(tabs)') return;
         if (data?.full_name) {
           router.replace('/(tabs)');
         } else {
