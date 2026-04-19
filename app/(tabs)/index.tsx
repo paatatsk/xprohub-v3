@@ -5,6 +5,7 @@ import { useRouter } from 'expo-router';
 import { Colors } from '../../constants/theme';
 import { GoldenDollar } from '../../components/GoldenDollar';
 import { supabase } from '../../lib/supabase';
+import { useIsWorker } from '../../hooks/useIsWorker';
 
 interface Category {
   id: number;
@@ -50,6 +51,17 @@ export default function HomeScreen() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const { isWorker, loading: workerLoading } = useIsWorker();
+
+  const handleStartEarning = useCallback(() => {
+    if (workerLoading) return;
+    if (isWorker) {
+      router.push('/(tabs)/market');
+    } else {
+      router.push('/(onboarding)/become-worker');
+    }
+  }, [isWorker, workerLoading, router]);
+
   useEffect(() => {
     supabase
       .from('task_categories')
@@ -75,14 +87,14 @@ export default function HomeScreen() {
           <Text style={styles.btnText}>HELP WANTED</Text>
           <Text style={styles.btnSub}>Post a job</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={[styles.btn, styles.btnWorker]} onPress={() => router.push('/(tabs)/market')}>
+        <TouchableOpacity style={[styles.btn, styles.btnWorker]} onPress={handleStartEarning}>
           <Text style={styles.btnText}>START EARNING</Text>
           <Text style={styles.btnSub}>Browse jobs</Text>
         </TouchableOpacity>
       </View>
       <Text style={styles.sectionLabel}>BROWSE CATEGORIES</Text>
     </View>
-  ), [router]);
+  ), [router, handleStartEarning]);
 
   const renderEmpty = useCallback(() => {
     if (loading) {
