@@ -55,19 +55,19 @@ The only design direction. No other aesthetic is in use.
 | 4 | Login | `app/(auth)/login.tsx` | Built |
 | 5 | Profile Setup | `app/(onboarding)/profile-setup.tsx` | Built |
 | 6 | Home (Category Grid) | `app/(tabs)/index.tsx` | Category Grid — 20 categories wired to live Supabase data, 2-column layout, tier badges, emoji icons, tapping category routes to Live Market filtered by that category. |
-| 7 | Post a Job | `app/(tabs)/post.tsx` | stub, ~23 lines, TODO |
+| 7 | Post a Job | `app/(tabs)/post.tsx` | Form scaffold — category pre-fill, task picker, validation, success state. No DB write yet (Step 4B). |
 | 8 | Worker Match | `app/(tabs)/match.tsx` | Built (mock data) |
 | 9 | Chat | `app/(tabs)/chat.tsx` | Built (mock data) |
 | 10 | Payment / Escrow | `app/(tabs)/payment.tsx` | Built (no Stripe yet) |
 | 11 | Rate / Review | `app/(tabs)/review.tsx` | Built |
 | 12 | Notifications | `app/(tabs)/notifications.tsx` | Built |
-| 13 | Live Market | `app/(tabs)/market.tsx` | stub, ~24 lines, TODO — two-feed toggle not yet built |
+| 13 | Live Market | `app/(tabs)/market.tsx` | Two-feed toggle built — Jobs Feed live from Supabase, Workers Feed empty state. FAB routes to Post a Job with category_id passthrough. |
 | 14 | Belt System | `app/(tabs)/belt.tsx` | Built |
 | 15 | Earnings / Wallet | `app/(tabs)/earnings.tsx` | stub, ~23 lines, TODO Phase 2 |
 
 Home = Category Grid hub. HELP WANTED → Post a Job. START EARNING → Live Market. Category card → Live Market filtered by category_id.
 
-## Supabase — 15 Tables (Live)
+## Supabase — 13 Tables (Live)
 `profiles` · `task_categories` · `task_library` · `worker_skills` · `job_post_tasks` · `jobs` · `bids` · `chats` · `messages` · `payments` · `reviews` · `xp_transactions` · `badges` · `notifications` · `user_badges`
 
 - `task_code` format: `CCTT` e.g. `0101` = category 01, task 01
@@ -184,6 +184,10 @@ WHERE requires_verification = true AND is_active = true
 ORDER BY category_id, task_code;
 ```
 
+## Recent Migrations
+- `20260417000001_replace_skills_with_task_library.sql` — Task Library v1.1 (20 categories, 188 tasks)
+- `20260419000001_cleanup_jobs_schema.sql` — Dropped legacy `skills`, `user_skills`, `jobs.skill_id`. Added RLS INSERT/SELECT policies on `job_post_tasks`. Confirmed applied 2026-04-19.
+
 ## Development Conventions
 
 - **Adding a task**: INSERT into `task_library` with `ON CONFLICT (task_code) DO NOTHING`. Never reuse a retired task code.
@@ -192,7 +196,7 @@ ORDER BY category_id, task_code;
 - **New migrations**: Place in `supabase/migrations/` with timestamp prefix `YYYYMMDDHHMMSS_description.sql`. Always wrap in `BEGIN`/`COMMIT`.
 - **Seed updates**: Changes to task data go in `supabase/seed/`. Use `ON CONFLICT (task_code) DO NOTHING` for inserts or `DO UPDATE SET ...` for corrections.
 - **task_code rules**: Always 4 characters, zero-padded. No gaps — if a task is retired, its code is reserved and not reissued.
-- **RLS state**: `task_categories` and `task_library` have anon-safe public read policies (safe for unauthenticated browse). `worker_skills` and `job_post_tasks` need auth-restricted RLS policies when wired to the app.
+- **RLS state**: `task_categories` and `task_library` have anon-safe public read policies (safe for unauthenticated browse). `worker_skills` needs auth-restricted RLS policies when wired to the app. `job_post_tasks` has INSERT + SELECT policies as of migration 20260419000001.
 
 ## Belt System (Workers)
 | Belt | Jobs | Min Rating | Key Unlock |
@@ -303,19 +307,22 @@ whole platform — do not bypass it.
 - Sign Up wired to Supabase Auth (email + password)
 - Supabase schema fully written (`xprohub_schema.sql`)
 - GoldenDollar + HomeBeacon reusable components
+- Live Market (market.tsx) — two-feed toggle, Jobs Feed wired to Supabase, loading/error/empty states, pull-to-refresh, + POST A JOB FAB routes to post.tsx with category_id passthrough
+- Post a Job form scaffold (post.tsx) — category pre-fill via query param, task picker from task_library filtered by category, validation, success state (Submit logs payload — no DB write yet)
+- Back navigation header on all tab screens except Home (dark gold, ‹ returns to Home)
 
 ## What Is NOT Built Yet
-- Category card routing on Home currently points to /post?category_id=X — must be changed to /market?category_id=X to match Live Market navigation model (pending code fix in next step)
-- Supabase not wired beyond Sign Up + Home categories (Login, Profile, Jobs all use mock data)
-- Live Market two-feed toggle (Jobs Feed + Workers Feed) — market.tsx is a stub
+- Supabase not wired beyond Sign Up + Home categories + Live Market Jobs Feed (Login, Profile all use mock data)
+- Post a Job submit handler — writes to jobs + job_post_tasks (Step 4B)
+- Level 2 Gate screen (shown at moment of action — Post, Apply, Hire) (Step 4C)
 - Direct Hire flow (tap "Hire Directly" on worker card)
-- Level 2 Gate screen (shown at moment of action — Post, Apply, Hire)
+- Workers Feed in Live Market — profiles + worker_skills business card wall
+- Live Market category filter — category_id query param not yet read by market.tsx (Step 3C)
 - Stripe integration (no real payments)
 - Push notifications not configured
 - Smart match algorithm not implemented
 - PostGIS geo-matching not active
 - Trust Level II/III verification flow
-- Task Library not yet wired to Post a Job or Live Market filter
 - Team Jobs / Squads / Regional system (Phase 2+)
 
 ## Session Start Checklist
