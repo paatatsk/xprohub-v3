@@ -47,7 +47,11 @@ export default function RootLayout() {
     const inAuthGroup = segments[0] === '(auth)';
     const inOnboarding = segments[0] === '(onboarding)';
     const inTabs = segments[0] === '(tabs)';
-    const alreadyOnProfileSetup = inOnboarding && segments[1] === 'profile-setup';
+    // Onboarding screens that authenticated users may legitimately land on
+    const onAllowedOnboarding = inOnboarding && (
+      segments[1] === 'profile-setup' ||
+      segments[1] === 'become-worker'
+    );
 
     if (onSplash) return;
 
@@ -61,7 +65,7 @@ export default function RootLayout() {
     }
 
     // Authenticated user already at the right destination — do nothing.
-    if (inTabs || alreadyOnProfileSetup) return;
+    if (inTabs || onAllowedOnboarding) return;
 
     // Authenticated user is somewhere that isn't their final destination
     // (just signed up, coming back from welcome/login, or app cold-start).
