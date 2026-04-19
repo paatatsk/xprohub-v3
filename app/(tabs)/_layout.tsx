@@ -36,7 +36,9 @@ export default function TabLayout() {
       <Tabs.Screen name="belt"          options={{ ...headerDefaults, headerShown: true, title: 'BELT SYSTEM',   headerLeft: () => <BackButton /> }} />
       <Tabs.Screen name="match"         options={{ ...headerDefaults, headerShown: true, title: 'WORKER MATCH',  headerLeft: () => <BackButton /> }} />
       <Tabs.Screen name="payment"       options={{ ...headerDefaults, headerShown: true, title: 'PAYMENT',       headerLeft: () => <BackButton /> }} />
-      <Tabs.Screen name="review"        options={{ ...headerDefaults, headerShown: true, title: 'RATE & REVIEW', headerLeft: () => <BackButton /> }} />
+      <Tabs.Screen name="review"        options={{ ...headerDefaults, headerShown: true, title: 'RATE & REVIEW',  headerLeft: () => <BackButton /> }} />
+      <Tabs.Screen name="direct-hire"   options={{ ...headerDefaults, headerShown: true, title: 'HIRE DIRECTLY',  headerLeft: () => <BackButton /> }} />
+      <Tabs.Screen name="job-chat"      options={{ ...headerDefaults, headerShown: true, title: 'CHAT',           headerLeft: () => <BackButton /> }} />
     </Tabs>
   );
 }

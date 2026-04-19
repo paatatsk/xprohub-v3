@@ -100,7 +100,7 @@ function JobCard({ job }: { job: Job }) {
 
 // ── Worker Card ────────────────────────────────────────────────
 
-function WorkerCard({ worker }: { worker: Worker }) {
+function WorkerCard({ worker, onHire }: { worker: Worker; onHire: () => void }) {
   const initials = worker.full_name
     .split(' ')
     .map(n => n[0])
@@ -149,9 +149,7 @@ function WorkerCard({ worker }: { worker: Worker }) {
             <TouchableOpacity
               style={styles.hireBtn}
               activeOpacity={0.8}
-              onPress={() => {
-                // TODO Step 7: Direct Hire flow — gate check → Direct Hire screen
-              }}
+              onPress={onHire}
             >
               <Text style={styles.hireBtnText}>Hire Directly</Text>
             </TouchableOpacity>
@@ -430,7 +428,15 @@ export default function MarketScreen() {
       <FlatList
         data={workers}
         keyExtractor={(item) => item.id}
-        renderItem={({ item }) => <WorkerCard worker={item} />}
+        renderItem={({ item }) => (
+          <WorkerCard
+            worker={item}
+            onHire={() => router.push(
+              `/(tabs)/direct-hire?worker_id=${item.id}` +
+              `&worker_name=${encodeURIComponent(item.full_name)}`
+            )}
+          />
+        )}
         contentContainerStyle={workers.length === 0 ? styles.fillCenter : styles.listContent}
         refreshControl={
           <RefreshControl
