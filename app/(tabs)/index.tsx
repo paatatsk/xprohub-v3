@@ -71,7 +71,7 @@ export default function HomeScreen() {
       <Text style={styles.title}>XPROHUB</Text>
       <Text style={styles.tagline}>Real Work. Fair Pay. For Everyone.</Text>
       <View style={styles.actions}>
-        <TouchableOpacity style={styles.btn} onPress={() => router.push('/(tabs)/post')}>
+        <TouchableOpacity style={styles.btn} onPress={() => router.push('/(tabs)/market')}>
           <Text style={styles.btnText}>HELP WANTED</Text>
           <Text style={styles.btnSub}>Post a job</Text>
         </TouchableOpacity>
@@ -97,7 +97,7 @@ export default function HomeScreen() {
   const renderItem = useCallback(({ item }: { item: Category }) => (
     <TouchableOpacity
       style={styles.card}
-      onPress={() => router.push(`/(tabs)/post?category_id=${item.id}`)}
+      onPress={() => router.push(`/(tabs)/market?category_id=${item.id}`)}
     >
       <View style={styles.cardTop}>
         <Text style={styles.cardIcon}>{iconForSlug(item.icon_slug)}</Text>
