@@ -50,7 +50,8 @@ export default function RootLayout() {
     // Onboarding screens that authenticated users may legitimately land on
     const onAllowedOnboarding = inOnboarding && (
       segments[1] === 'profile-setup' ||
-      segments[1] === 'become-worker'
+      segments[1] === 'become-worker'  ||
+      segments[1] === 'verify-level-2'
     );
 
     if (onSplash) return;

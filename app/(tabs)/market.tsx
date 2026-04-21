@@ -7,6 +7,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Colors, Radius, Spacing } from '../../constants/theme';
 import { supabase } from '../../lib/supabase';
+import { useTrustLevel } from '../../hooks/useTrustLevel';
 
 // Screen 13 — Live Market
 // Step 3B: Jobs Feed wired to Supabase
@@ -166,6 +167,7 @@ export default function MarketScreen() {
   const router = useRouter();
   const [activeFeed, setActiveFeed] = useState<Feed>('jobs');
   const { category_id } = useLocalSearchParams<{ category_id?: string }>();
+  const { trustLevel } = useTrustLevel();
 
   // Category filter state (name resolved for display + Jobs Feed .eq())
   const [categoryName, setCategoryName] = useState<string | null>(null);
@@ -431,10 +433,16 @@ export default function MarketScreen() {
         renderItem={({ item }) => (
           <WorkerCard
             worker={item}
-            onHire={() => router.push(
-              `/(tabs)/direct-hire?worker_id=${item.id}` +
-              `&worker_name=${encodeURIComponent(item.full_name)}`
-            )}
+            onHire={() => {
+              const hireDest =
+                `/(tabs)/direct-hire?worker_id=${item.id}` +
+                `&worker_name=${encodeURIComponent(item.full_name)}`;
+              if (trustLevel === 'explorer') {
+                router.push(`/(onboarding)/verify-level-2?destination=${encodeURIComponent(hireDest)}`);
+              } else {
+                router.push(hireDest);
+              }
+            }}
           />
         )}
         contentContainerStyle={workers.length === 0 ? styles.fillCenter : styles.listContent}
@@ -499,12 +507,14 @@ export default function MarketScreen() {
           style={styles.fab}
           activeOpacity={0.85}
           onPress={() => {
-            // TODO 4C: gate check → Level 2 gate before navigating
-            router.push(
-              category_id
-                ? `/(tabs)/post?category_id=${category_id}`
-                : '/(tabs)/post'
-            );
+            const fabDestination = category_id
+              ? `/(tabs)/post?category_id=${category_id}`
+              : '/(tabs)/post';
+            if (trustLevel === 'explorer') {
+              router.push(`/(onboarding)/verify-level-2?destination=${encodeURIComponent(fabDestination)}`);
+            } else {
+              router.push(fabDestination);
+            }
           }}
         >
           <Text style={styles.fabText}>+ POST A JOB</Text>
