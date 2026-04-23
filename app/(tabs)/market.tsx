@@ -30,6 +30,7 @@ interface Job {
   timing: string | null;
   is_urgent: boolean;
   created_at: string;
+  customer_id: string;          // needed for job-detail navigation
 }
 
 interface Worker {
@@ -65,9 +66,9 @@ function beltLabel(belt: string | null): string {
 
 // ── Job Card ───────────────────────────────────────────────────
 
-function JobCard({ job }: { job: Job }) {
+function JobCard({ job, onPress }: { job: Job; onPress: () => void }) {
   return (
-    <View style={styles.card}>
+    <TouchableOpacity style={styles.card} onPress={onPress} activeOpacity={0.85}>
       <View style={styles.cardHeader}>
         <Text style={styles.cardTitle} numberOfLines={2}>{job.title}</Text>
         {job.is_urgent && (
@@ -95,7 +96,7 @@ function JobCard({ job }: { job: Job }) {
           ) : null}
         </View>
       </View>
-    </View>
+    </TouchableOpacity>
   );
 }
 
@@ -209,7 +210,7 @@ export default function MarketScreen() {
 
     let query = supabase
       .from('jobs')
-      .select('id, title, description, category, budget_min, budget_max, neighborhood, timing, is_urgent, created_at')
+      .select('id, title, description, category, budget_min, budget_max, neighborhood, timing, is_urgent, created_at, customer_id')
       .eq('status', 'open')
       .order('created_at', { ascending: false })
       .limit(50);
@@ -376,7 +377,12 @@ export default function MarketScreen() {
       <FlatList
         data={jobs}
         keyExtractor={(item) => item.id}
-        renderItem={({ item }) => <JobCard job={item} />}
+        renderItem={({ item }) => (
+            <JobCard
+              job={item}
+              onPress={() => router.push(`/(tabs)/job-detail?job_id=${item.id}` as any)}
+            />
+          )}
         contentContainerStyle={jobs.length === 0 ? styles.fillCenter : styles.listContent}
         refreshControl={
           <RefreshControl
