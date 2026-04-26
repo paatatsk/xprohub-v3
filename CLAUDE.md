@@ -12,6 +12,15 @@
 - Repo: `github.com/paatatsk/xprohub-v3` | Local: `C:\Users\sophi\Documents\xprohub-v3`
 - Start: `npx expo start --clear` | Test: iPhone via Expo Go
 
+---
+**See also (for full project orientation):**
+- `SESSION_HANDOUT.md` — full chat-AI orientation, working preferences, philosophy
+- `SESSION_PLAN_v2.md` — milestone roadmap and active build order
+- `POLISH_PASS.md` — deferred items and parked architectural explorations
+
+For current commit state: `git log --oneline -10`
+---
+
 ## Tech Stack
 | Layer | Choice |
 |---|---|
@@ -301,29 +310,62 @@ whole platform — do not bypass it.
 12. **app.json assets**: splash = `splash-icon.png`, Android icon = `android-icon-foreground.png`
 
 ## What Is Built
-- All 15 production screens as TSX files (mostly stubs or mock data)
-- Welcome screen — THE XPROHUB masthead, ticker bar, Playfair Display tagline "All The Work That's Fit To Post", yin-yang interactive boxes (color-swap on tap), dollar-sign boxes, BUILT FOR TRUST strip
-- Home screen — 20-category grid, live Supabase data, 2-column layout, tier badges, emoji icons
-- Sign Up wired to Supabase Auth (email + password)
-- Supabase schema fully written (`xprohub_schema.sql`)
-- GoldenDollar + HomeBeacon reusable components
-- Live Market (market.tsx) — two-feed toggle, Jobs Feed wired to Supabase, loading/error/empty states, pull-to-refresh, + POST A JOB FAB routes to post.tsx with category_id passthrough
-- Post a Job form scaffold (post.tsx) — category pre-fill via query param, task picker from task_library filtered by category, validation, success state (Submit logs payload — no DB write yet)
+
+### ✅ Milestone 1 — Foundation & Auth (complete)
+- Supabase schema: 13 tables, RLS policies, PostGIS, Realtime on jobs/messages/notifications
+- Auth flow: signup + login wired to Supabase Auth, smart routing in `_layout.tsx`
+- Profile setup with photo upload
+- Welcome screen — masthead, ticker bar, Playfair Display tagline, yin-yang boxes, BUILT FOR TRUST strip
+- Trust System locked: Explorer (browse only) → Starter/2A (phone + basic Stripe) → Pro/2B (full ID + Stripe Connect) → XPro/3 (reputation). Gates fire at moment of action only.
+- 20 task categories with emoji icons in Supabase
+- Task Library: 188 tasks across 20 categories (seed deployed 2026-04-17)
+
+### ✅ Milestone 2 — The Live Loop (complete — 12 steps)
+- Live Market two-feed toggle: JOBS feed + WORKERS feed, both wired to Supabase
+- Jobs Feed filtered by category_id query param passthrough from Home
+- Post a Job: category-first picker, task picker from task_library, Submit wired to DB (jobs + job_post_tasks), Level 2 Gate fires before post
+- Apply flow: Job Detail screen → smart templates + custom message + price gate + soft budget warning → apply-success screen
+- Hire Directly v2: full job form parity with Post a Job, targeted at specific worker
+- Become a Worker onboarding
 - Back navigation header on all tab screens except Home (dark gold, ‹ returns to Home)
 
+### 🟡 Milestone 3 — Transactions (Step 8 complete)
+- `accept_bid()` + `decline_bid()` Postgres functions — atomic, SECURITY DEFINER, GRANT to authenticated
+- Atomic auto-decline cascade: accept one bid → all others flipped to declined, job → matched, chat row created
+- My Jobs screen (customer): posted jobs with bid counts and status badges
+- Job Bids / APPLICATIONS screen: review bids, accept/decline with confirmation alerts
+- End-to-end verified on iPhone with two real accounts (Khatuna accepted Paata's $185 Painting bid)
+
+### Design
+- Dark Gold theme locked: bg `#0E0E0F`, gold `#C9A84C`, card `#171719`
+- Three font families: Oswald (headlines), Playfair Display (serif), Inter (body)
+- 16+ screens registered in `app/(tabs)/_layout.tsx`
+- Dual-Claude workflow: chat-Claude (strategist/reviewer) + Claude Code (terminal executor)
+
 ## What Is NOT Built Yet
-- Supabase not wired beyond Sign Up + Home categories + Live Market Jobs Feed (Login, Profile all use mock data)
-- Post a Job submit handler — writes to jobs + job_post_tasks (Step 4B)
-- Level 2 Gate screen (shown at moment of action — Post, Apply, Hire) (Step 4C)
-- Direct Hire flow (tap "Hire Directly" on worker card)
-- Workers Feed in Live Market — profiles + worker_skills business card wall
-- Live Market category filter — category_id query param not yet read by market.tsx (Step 3C)
-- Stripe integration (no real payments)
-- Push notifications not configured
-- Smart match algorithm not implemented
-- PostGIS geo-matching not active
-- Trust Level II/III verification flow
-- Team Jobs / Squads / Regional system (Phase 2+)
+
+### 🔲 Milestone 3 — Transactions (remaining)
+- **Step 9: My Applications worker dashboard** — symmetric to My Jobs, lists worker's bid history grouped by status ← **NEXT BUILD TARGET**
+- Step 10: Real Chat UI — replace `job-chat.tsx` placeholder with Supabase Realtime message thread, bubbles, send input
+- Step 11: Job lifecycle progression — `matched → in_progress → completed`, add `started_at`/`completed_at` timestamps to `jobs`
+- Step 12: Review flow — post-completion ratings both directions, updates `profiles.rating_avg`
+- Step 13: Payment flow — Stripe Connect escrow + 10% platform fee, pay-on-accept, release-on-complete
+
+### 🔲 Milestone 4 — Trust & Reputation (deferred)
+- Belt System UI — data exists in schema, no UI surface yet
+- Notifications system — `notifications` table exists, not wired (see POLISH_PASS.md Worker Dignity Implementation A)
+- Background check integration — Level 2B verification flow
+
+### 🔲 Polish Pass (deferred)
+See `POLISH_PASS.md` for the current list. As of Step 8 there are
+6 numbered polish items plus two parked architectural blocks:
+Worker Dignity (Notifications + Released copy + While-You-Wait cards,
+sub-items A/B/C) and Hybrid Matching exploration (Milestone 4+ with
+critique).
+
+### 🔲 Long-term (Milestone 6+)
+- Hybrid Matching exploration — instant-dispatch + market density UX (see POLISH_PASS.md)
+- Squad / Team Jobs
 
 ## Session Start Checklist
 - [ ] `npx expo start --clear`
