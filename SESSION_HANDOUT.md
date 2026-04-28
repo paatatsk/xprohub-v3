@@ -221,3 +221,70 @@ If a new chat starts cold:
 4. Resume from "Active Task / Where We Left Off"
 
 That's it. The handoff should take ~2 turns.
+
+---
+
+## Step 13 Investigation Brief — Stripe Connect (active target)
+
+### What is locked
+
+**LOCKED — Worker Dignity payment constraint:**
+The customer's payment must be confirmed BEFORE the worker begins work.
+This rules out any "customer pays after job complete" model. The whole
+point of XProHub vs Craigslist is that workers don't show up to ghost
+payments. Funds confirmed → worker confidence → worker shows up.
+Treat this as a hard architectural constraint, not a preference.
+
+**LOCKED — Platform fee:** 10% of agreed_price, kept by XProHub.
+
+**LOCKED — Currency:** USD (NYC market launch).
+
+### What needs investigation and recommendation
+
+Three architectural questions are deliberately OPEN. Paata wants you to
+research Stripe Connect, present tradeoffs in plain English (not Stripe
+jargon), and recommend a path. Don't commit to an architecture before
+Paata confirms.
+
+1. **Account type for workers**
+   - Express vs Standard vs Custom
+   - Tradeoffs in onboarding UX, compliance burden, dashboard access
+   - Recommendation expected
+
+2. **Charge timing**
+   - Constraint: must confirm payment before work begins (see above)
+   - Within that constraint: charge at acceptance? Authorize at acceptance
+     and capture later? Hold via separate escrow account?
+   - Cancellation/refund flows for each option
+
+3. **10% fee collection mechanism**
+   - Stripe's `application_fee_amount` (native split on the charge)
+   - Manual transfer pattern (charge platform, then transfer 90% to worker)
+   - Tradeoffs in accounting, refund logic, complexity
+
+### What's already in place (no migration to Step 13's data layer needed)
+
+- `jobs.agreed_price` populated when bid is accepted (Step 8)
+- `jobs.status` lifecycle: matched → in_progress → completed (Step 11)
+- `profiles.stripe_account_id` column already in schema (currently NULL)
+- `payments` table exists in schema (currently empty, awaiting wire-up)
+
+### Known dependencies and concerns
+
+- Workers need to onboard to Stripe Connect BEFORE they can accept bids
+  with payment. This is a new gate before the existing "Apply to job" flow.
+- Webhook handling will be needed for charge.succeeded, charge.refunded,
+  account.updated, and payout events. Likely a Supabase Edge Function or
+  a small server-side endpoint.
+- iPhone testing will require Stripe test mode and test cards. No real
+  money during build phase.
+- Disputes/chargebacks: deferred to post-MVP. Don't build dispute UI yet.
+
+### Working pattern reminder
+
+Same pattern that shipped Steps 8-12:
+1. Investigation phase first (read-only, no code)
+2. Architectural recommendation with tradeoffs in plain English
+3. Paata confirms direction
+4. Build in small chunks (migrations first, then UI in 2-3 part reviews)
+5. iPhone test each chunk before moving on
