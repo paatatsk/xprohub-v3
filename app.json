@@ -16,8 +16,10 @@
     "ios": {
       "supportsTablet": true,
       "infoPlist": {
-        "NSFaceIDUsageDescription": "XProHub uses Face ID to sign you in quickly and securely."
-      }
+        "NSFaceIDUsageDescription": "XProHub uses Face ID to sign you in quickly and securely.",
+        "ITSAppUsesNonExemptEncryption": false
+      },
+      "bundleIdentifier": "com.paatatsk.xprohubv3"
     },
     "android": {
       "adaptiveIcon": {
@@ -25,7 +27,11 @@
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "permissions": [
+        "android.permission.USE_BIOMETRIC",
+        "android.permission.USE_FINGERPRINT"
+      ]
     },
     "web": {
       "bundler": "metro",
@@ -38,6 +44,12 @@
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "d345f424-bb4c-4ecb-99ff-6388070a5822"
+      }
     }
   }
 }
