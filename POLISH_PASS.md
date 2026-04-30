@@ -12,7 +12,13 @@
   with dual-handle slider. Needs: max value cap (logarithmic?),
   tick marks, haptic feedback. Captured 2026-04-19.
 
-## Add more as we discover them
+- **Step 12 chat-screen review-state race** — `userHasReviewed` is read once on
+  initial load; after submitting a review and navigating back, the state is stale
+  and "LEAVE A REVIEW" stays visible. Tapping it triggers a duplicate INSERT that
+  hits the `reviews` unique constraint and surfaces an error the user shouldn't see.
+  **Fix:** Add `useFocusEffect` to `job-chat.tsx` to re-run the existing-review
+  SELECT (filtered by `job_id` + `reviewer_id`) every time the screen regains focus.
+  Short, isolated — hotfix-eligible between any major step. Captured 2026-04-30.
 
 ---
 
@@ -206,3 +212,109 @@ Three concrete signals:
 3. **Worker feedback:** Repeated requests for "I want instant work" with willingness to commit to SLAs
 
 Without all three, instant-dispatch is solving an imagined problem.
+
+---
+
+## Operational Tracking
+
+Not feature work — calendar-style reminders for infrastructure maintenance.
+Park here so they don't get lost between sessions.
+
+**SUPABASE_ACCESS_TOKEN security hygiene**
+**Captured:** 2026-04-30 | **Area:** Security / Step 13 Chunk B-3 | **Severity:** Latent — depends on laptop physical security
+
+The Personal Access Token used for `supabase` CLI auth is set as a Windows User
+environment variable (`SUPABASE_ACCESS_TOKEN`) with NO expiration date. Trade-off:
+no rotation hassle, but the token stays valid until manually revoked.
+
+**Fix when needed:** If laptop is lost, stolen, sold, OR if any chat history
+containing the token is ever leaked, immediately revoke from Supabase dashboard
+(Account → Access Tokens → Delete the "xprohub-cli-local" token). Then generate
+a replacement and update the `SUPABASE_ACCESS_TOKEN` env var.
+
+**Check when:** On laptop change or suspected compromise. No scheduled rotation needed.
+
+---
+
+**@xmldom/xmldom high-severity vulnerability in Expo toolchain**
+**Captured:** 2026-04-30 | **Area:** Operational / Security tracking | **Severity:** High (build-time only, not runtime)
+
+`npm audit` reports a high-severity vulnerability in `@xmldom/xmldom <=0.8.12`,
+transitively pulled in via Expo's `@expo/config-plugins` build toolchain. NOT
+introduced by Stripe or any project code. NOT present in shipped app code — affects
+build-time tooling only.
+
+The "fix" suggested by `npm audit fix --force` would downgrade Expo to 49 and break
+the entire project. Wait for upstream Expo patch.
+
+**Fix:** Re-run `npm audit` after every Expo SDK upgrade. When the `@xmldom/xmldom`
+finding clears, the vulnerability is resolved.
+
+**Check when:** Each Expo SDK upgrade.
+
+---
+
+## Deployment & Dev Environment
+
+Deployment prep and local dev config items. None block current development;
+all relevant before first production build or local Supabase dev setup.
+
+**iOS / Android bundle identifiers in app.json**
+**Captured:** 2026-04-30 | **Area:** Deployment prep | **Severity:** Blocks App Store / Play Store submission
+
+EAS dev build flow set the iOS bundle identifier to `com.paatatsk.xprohubv3` during
+`eas build` setup. However, `app.json` may not have explicit `ios.bundleIdentifier`
+and `android.package` fields. Auto-derivation works for EAS dev builds but stable
+identifiers are required for production store submission.
+
+**Fix:** Add explicit fields to `app.json`:
+- `ios.bundleIdentifier`: `com.paatatsk.xprohubv3`
+- `android.package`: `com.paatatsk.xprohubv3`
+
+**Build this when:** Before first EAS production build for store submission. Also
+useful before any Stripe production-mode testing.
+
+---
+
+**Redundant supabase/.temp/ entry in root .gitignore**
+**Captured:** 2026-04-30 | **Area:** Tidiness | **Severity:** Cosmetic
+
+After `supabase init` in B-3, `supabase/.gitignore` was auto-created and already
+ignores `.temp`. The earlier entry in the root `.gitignore` (`supabase/.temp/`) is
+therefore redundant. Both work, no conflict, but duplicate coverage.
+
+**Fix:** Remove `supabase/.temp/` line from root `.gitignore`. Verify by running
+`git status` after creating a file inside `supabase/.temp/` — should still be ignored.
+
+**Build this when:** Anytime. Cosmetic cleanup, low priority.
+
+---
+
+**config.toml [db] major_version mismatch with remote**
+**Captured:** 2026-04-30 | **Area:** Local dev compatibility | **Severity:** Latent — only triggers if local Supabase dev is ever set up
+
+`supabase init` set `[db] major_version = 17` in `supabase/config.toml`. Remote
+Supabase project may be on Postgres 15. Mismatch only affects local Supabase dev
+(`supabase start` with Docker). Does NOT affect Edge Function deployment or any
+remote operations.
+
+**Fix:** Verify remote Postgres version (Supabase dashboard → Project Settings →
+Database). Update `major_version` in `config.toml` to match.
+
+**Build this when:** Only if local Supabase dev is ever set up. Ignore if always
+working against remote.
+
+---
+
+**config.toml [db.seed] sql_paths points to non-existent file**
+**Captured:** 2026-04-30 | **Area:** Local dev compatibility | **Severity:** Latent — only triggers on local `supabase db reset`
+
+Default `[db.seed] sql_paths = ["./seed.sql"]` expects `supabase/seed.sql` to exist.
+Actual seed file lives at `supabase/seed/XProHub_TaskLibrary_Seed_v1.1.sql`.
+
+**Fix:** Update `sql_paths` in `config.toml`:
+```toml
+sql_paths = ["./seed/XProHub_TaskLibrary_Seed_v1.1.sql"]
+```
+
+**Build this when:** Only if local Supabase dev is ever set up.
