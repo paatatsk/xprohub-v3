@@ -168,6 +168,46 @@ Don't add UI copy that says "We commit to Worker Dignity™" or "We never ghost.
 
 ---
 
+## Trust & Safety
+
+**Customer-side ID/photo requirement for post-job**
+**Captured:** 2026-05-01 | **Area:** Trust & Safety — gate architecture | **Severity:** Real (worker dignity / mutual verification gap), not blocking MVP
+
+Currently the post-job gate (Chunk C architecture) requires customers
+to have Stripe set up only — no Business Card / ID requirement. The
+worker side requires name + photo + ≥1 skill category + Stripe.
+
+Mission tension: anonymous customers (with only a payment method) can
+hire workers who must show full identity. Workers face physical risk
+when entering customer homes, financial risk when customers can dispute
+charges, and dignity risk when a fully-verified worker is matched with
+an anonymous booking. Real-world marketplace pattern (TaskRabbit,
+Thumbtack, Airbnb) shifts toward symmetric minimum verification.
+
+**Proposed fix:** Customers need name + photo + Stripe to post a job.
+No skills declaration (they're not offering skills) — just enough to
+make the interaction feel between two real people, not anonymous
+transactions.
+
+**Why deferred:** This is real architectural work that would expand
+Chunk C scope. The Stripe-only gate ships a working marketplace; the
+photo requirement is trust-deepening that can layer in pre-launch as
+a polish pass.
+
+**Build this when:** Before public NYC test launch. Specifically: after
+Chunk D (customer payment flow) lands, before any real users post real
+jobs.
+
+**Considerations during build:**
+- Photo can be a logo or household icon (not strictly required to be
+  a face shot) for users with privacy sensitivity
+- Photo is shown to applying workers and the hired worker only — not
+  on the public job listing
+- Same gate-action-continuity pattern: complete photo upload → return
+  to post-job form with their drafted content preserved
+
+---
+
 ## Hybrid Matching Exploration — Milestone 4+ (with honest critique)
 
 **Captured:** 2026-04-26 (synthesized from Paata's research conversation + review with Claude)
