@@ -429,3 +429,12 @@ enabled = true
 verify_jwt = true
 import_map = "./functions/create-stripe-account/deno.json"
 entrypoint = "./functions/create-stripe-account/index.ts"
+
+[functions.create-onboarding-link]
+enabled = true
+# App sends a Supabase JWT in Authorization: Bearer <token>.
+# verify_jwt = true — same as create-stripe-account. This function
+# is called by the authenticated app, not by Stripe.
+verify_jwt = true
+import_map = "./functions/create-onboarding-link/deno.json"
+entrypoint = "./functions/create-onboarding-link/index.ts"
