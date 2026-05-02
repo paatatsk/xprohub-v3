@@ -384,8 +384,8 @@ and pricing items already parked.
 **Project rename: xprohubv3 → xprohub**
 **Captured:** 2026-05-02 | **Severity:** Low (cosmetic / brand)
 
-The bundle ID, app scheme, GitHub repo, local folder, and various
-display names all carry "xprohubv3" as a development-time identifier.
+The bundle ID, GitHub repo, local folder, and various
+display names carry "xprohubv3" as a development-time identifier.
 The brand is "XProHub" — the v3 is internal-only.
 
 Scope of full rename (~3-4 hours, single dedicated session):
