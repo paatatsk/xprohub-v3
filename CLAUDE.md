@@ -80,7 +80,7 @@ The only design direction. No other aesthetic is in use.
 | Purple | `#9B6EE8` | XP, growth, Royal theme |
 | Red | `#E05252` | Urgent, live, alerts, cancel |
 
-- **Headline font**: Oswald
+- **Headline font**: Space Grotesk
 - **Serif accent font**: Playfair Display
 - **Body font**: Inter
 - **Big numbers**: always gold — the loudest element on every screen
@@ -355,7 +355,7 @@ whole platform — do not bypass it.
 - Auth flow: signup + login wired to Supabase Auth, smart routing in `_layout.tsx`
 - Profile setup with photo upload
 - Welcome screen — masthead, ticker bar, Playfair Display tagline, yin-yang boxes, BUILT FOR TRUST strip
-- Trust System locked: Explorer (browse only) → Starter/2A (phone + basic Stripe) → Pro/2B (full ID + Stripe Connect) → XPro/3 (reputation). Gates fire at moment of action only.
+- Progressive gates: Explorer (browse only) → gates fire at moment of action (Apply, Post, Hire). See Gate Specifications above.
 - 20 task categories with emoji icons in Supabase
 - Task Library: 188 tasks across 20 categories (seed deployed 2026-04-17)
 
@@ -368,27 +368,25 @@ whole platform — do not bypass it.
 - Become a Worker onboarding
 - Back navigation header on all tab screens except Home (dark gold, ‹ returns to Home)
 
-### 🟡 Milestone 3 — Transactions (Step 8 complete)
-- `accept_bid()` + `decline_bid()` Postgres functions — atomic, SECURITY DEFINER, GRANT to authenticated
-- Atomic auto-decline cascade: accept one bid → all others flipped to declined, job → matched, chat row created
-- My Jobs screen (customer): posted jobs with bid counts and status badges
-- Job Bids / APPLICATIONS screen: review bids, accept/decline with confirmation alerts
-- End-to-end verified on iPhone with two real accounts (Khatuna accepted Paata's $185 Painting bid)
+### 🟡 Milestone 3 — Transactions (Steps 8–12 complete, Step 13 in progress)
+- Step 8: `accept_bid()` + `decline_bid()` Postgres functions, atomic auto-decline cascade, My Jobs + Job Bids screens, end-to-end verified on iPhone
+- Step 9: My Applications worker dashboard — bid history grouped by status
+- Step 10: Real Chat UI — Supabase Realtime message thread, bubbles, send input (`job-chat.tsx`)
+- Step 11: Job lifecycle CTAs — Mark In Progress / Mark Complete on chat screen
+- Step 12: Review flow — rating + comment form, wired into chat completed state
+- Step 13: Payment flow — Chunks A (schema) and B (infrastructure) complete. Chunk C (Worker Stripe Connect) in progress: C-1 design, C-2/C-3 Edge Functions, C-4a design doc done. C-4a implementation is next. See `docs/PROJECT_STATUS_2026-05-03.md` for detailed chunk status.
 
 ### Design
 - Dark Gold theme locked: bg `#0E0E0F`, gold `#C9A84C`, card `#171719`
-- Three font families: Oswald (headlines), Playfair Display (serif), Inter (body)
+- Three font families: Space Grotesk (headlines), Playfair Display (serif), Inter (body)
 - 16+ screens registered in `app/(tabs)/_layout.tsx`
 - Dual-Claude workflow: chat-Claude (strategist/reviewer) + Claude Code (terminal executor)
 
 ## What Is NOT Built Yet
 
-### 🔲 Milestone 3 — Transactions (remaining)
-- **Step 9: My Applications worker dashboard** — symmetric to My Jobs, lists worker's bid history grouped by status ← **NEXT BUILD TARGET**
-- Step 10: Real Chat UI — replace `job-chat.tsx` placeholder with Supabase Realtime message thread, bubbles, send input
-- Step 11: Job lifecycle progression — `matched → in_progress → completed`, add `started_at`/`completed_at` timestamps to `jobs`
-- Step 12: Review flow — post-completion ratings both directions, updates `profiles.rating_avg`
-- Step 13: Payment flow — Stripe Connect escrow + 10% platform fee, pay-on-accept, release-on-complete
+### 🔲 Milestone 3 — Transactions (Step 13 remaining)
+- Step 13 Chunk C-4a implementation through C-7: `stripe-connect.tsx` screen, apply.tsx Stripe gate, deep link return, webhook handler, end-to-end test
+- Step 13 Chunks D, E, F: customer payment method, payout release, payment UI polish
 
 ### 🔲 Milestone 4 — Trust & Reputation (deferred)
 - Belt System UI — data exists in schema, no UI surface yet
