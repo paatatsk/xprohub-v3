@@ -16,7 +16,7 @@ export const Colors = {
 };
 
 export const Fonts = {
-  heading: 'Oswald_700Bold',      // All headings — Oswald Bold
+  heading: 'SpaceGrotesk-Bold',   // All headings — Space Grotesk Bold
   body:    'Inter',               // All body text — Inter
 };
 
