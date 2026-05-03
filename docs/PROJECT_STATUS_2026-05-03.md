@@ -43,13 +43,20 @@ the 2026-05-03 reconciliation pass — deprecate `NEW_CHAT_PROMPT.md`, refresh
 Definition of done: all 11 closed, single coordinated commit, this blueprint
 updated.
 
-**Task 2 — Fix pre-existing tsc errors.** 24 errors captured in
-`docs/TSC_BASELINE_2026-05-03.txt` at the time of C-4a Stage 2 commit. Of
-these, 8 are in app code (potentially fixable) and 16 are Deno runtime
-errors in Edge Functions (need separate tsconfig or exclusion strategy).
-Definition of done: investigation pass surfaces what's fixable vs what needs
-config change, plan agreed, errors resolved or formally excluded, baseline
-file deleted, this blueprint updated.
+**Task 2 — Fix pre-existing tsc errors.** All 24 errors resolved (fixes
+applied, awaiting commit). Approach: excluded `supabase/functions/**`
+from app tsconfig (16 Deno errors), fixed 6 mechanical `as any`/`as
+unknown as` casts in app code (plus 2 adjacent matching-pattern lines
+for consistency), replaced broken `gestureEnabled` with proper
+`BackHandler` interception on apply-success screen, widened
+`segments.length === 0` check to satisfy Expo Router tuple typing.
+
+**Task 3 — Set up Deno tooling for Edge Functions.** When ready: install
+Deno CLI, create `supabase/functions/deno.json` with compiler config and
+ESM import map matching Supabase's standard pattern, run `deno check`
+to verify it works, integrate into deploy workflow when CI is built.
+Until then, Edge Functions are excluded from app tsc and rely on
+Supabase's runtime checks at deploy time.
 
 ---
 

@@ -1,13 +1,22 @@
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { useCallback } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, BackHandler } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
+import { useRouter, useFocusEffect } from 'expo-router';
 import { Colors, Radius, Spacing } from '../../constants/theme';
 
 // Apply Success — confirmation screen after bid submitted
 // Forward-only: no back navigation. Both buttons use router.replace.
+// BackHandler blocks Android hardware back button while this screen is focused.
 
 export default function ApplySuccessScreen() {
   const router = useRouter();
+
+  useFocusEffect(
+    useCallback(() => {
+      const sub = BackHandler.addEventListener('hardwareBackPress', () => true);
+      return () => sub.remove();
+    }, [])
+  );
 
   return (
     <SafeAreaView style={styles.container} edges={['top', 'bottom']}>

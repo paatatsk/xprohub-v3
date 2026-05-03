@@ -46,7 +46,7 @@ export default function RootLayout() {
   useEffect(() => {
     if (loading) return;
 
-    const onSplash = segments[0] === 'splash' || segments.length === 0;
+    const onSplash = segments[0] === 'splash' || !segments[0];
     const inAuthGroup = segments[0] === '(auth)';
     const inOnboarding = segments[0] === '(onboarding)';
     const inTabs = segments[0] === '(tabs)';

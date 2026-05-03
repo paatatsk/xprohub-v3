@@ -237,7 +237,7 @@ export default function DirectHireScreen() {
     router.replace(
       `/(tabs)/job-chat?chat_id=${newChat.id}` +
       `&worker_name=${encodeURIComponent(worker_name ?? 'Worker')}` +
-      `&first_message=${encodeURIComponent(firstMessage)}`
+      `&first_message=${encodeURIComponent(firstMessage)}` as any
     );
   };
 

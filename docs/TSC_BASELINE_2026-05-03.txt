@@ -1,50 +1,17 @@
-TypeScript Compiler Baseline — 2026-05-03
+TSC BASELINE — RESOLVED 2026-05-03
 
-Captured immediately before C-4a Stage 2 commit (post-stripe-connect.tsx save).
-Purpose: distinguish pre-existing errors from any new errors introduced by
-C-4a Stages 3 and 4 (which edit _layout.tsx files).
+All 24 errors that were captured in this baseline have been resolved.
+See commit history for fixes (Task 2 completion).
 
-Total: 24 errors across 8 files.
+Fix summary:
+  - 16 Edge Function errors: excluded supabase/functions/** from app tsconfig
+    (Deno tooling setup tracked as Task 3 in PROJECT_STATUS)
+  - 6 mechanical casts: added `as any` on dynamic route strings (3 errors),
+    added `as unknown as` on Supabase join type mismatches (3 errors)
+  - 1 gestureEnabled no-op: removed broken property from Tabs.Screen,
+    added proper BackHandler interception to apply-success.tsx
+  - 1 segments.length check: widened comparison from `segments.length === 0`
+    to `!segments[0]` to satisfy Expo Router tuple typing
 
-React Native app code (potentially fixable):
-  app/(tabs)/_layout.tsx                          1 error
-  app/(tabs)/direct-hire.tsx                      1 error
-  app/(tabs)/market.tsx                           4 errors
-  app/(tabs)/my-applications.tsx                  1 error
-  app/_layout.tsx                                 1 error
-  Subtotal:                                       8 errors
-
-Supabase Edge Functions (Deno runtime — NOT fixable from app tsconfig):
-  supabase/functions/_shared/stripe-client.ts     2 errors
-  supabase/functions/create-onboarding-link/      5 errors
-  supabase/functions/create-stripe-account/       5 errors
-  supabase/functions/stripe-webhook/              4 errors
-  Subtotal:                                       16 errors
-
-Stage 4 verification check:
-  npx tsc --noEmit 2>&1 | grep -c "error TS"
-  Expected output: 24 (or fewer, if any pre-existing errors get incidentally
-  fixed by Stage 3/4 edits — that's fine, just not expected). If output is
-  25+, something new was introduced and needs investigation before commit.
-
-This file is ephemeral. Delete when the "Fix tsc errors" task completes.
-
----
-
-Insight surfaced during C-4a Stage 4 (2026-05-03):
-
-The 8 React Native app code errors (in _layout.tsx, direct-hire.tsx,
-market.tsx, my-applications.tsx, _layout.tsx) are caused by missing
-`as any` casts on dynamic route strings passed to router.push/replace and
-on route.params access. The codebase already establishes `as any` as the
-accepted workaround pattern (see app/(tabs)/_layout.tsx BackButton and
-stripe-connect Tabs.Screen, plus app/(tabs)/stripe-connect.tsx line 290).
-
-Likely fix path for Task 2: audit the 8 app errors, add `as any` casts
-where the design pattern matches, OR introduce a properly-typed RouteList
-declaration as a one-time fix that retires the `as any` workaround
-globally. The latter is more work but cleaner.
-
-The 16 Edge Function errors are unrelated — they're Deno runtime types
-not visible to the app's tsconfig. Separate fix path: configure Deno-aware
-tsconfig OR exclude supabase/functions/ from the app's tsc run.
+This file is retained for historical reference. Safe to delete in
+a future cleanup pass.

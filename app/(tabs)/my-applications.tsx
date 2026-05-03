@@ -200,7 +200,7 @@ export default function MyApplicationsScreen() {
       return;
     }
 
-    const rows = (bidRows ?? []) as Bid[];
+    const rows = (bidRows ?? []) as unknown as Bid[];
     setBids(rows);
 
     // Step 3 — second query for customer names on accepted bids only.

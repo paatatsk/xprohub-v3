@@ -286,7 +286,7 @@ export default function MarketScreen() {
       const workerMap = new Map<string, Worker>();
 
       for (const row of (rows ?? [])) {
-        const profile = row.profiles as {
+        const profile = row.profiles as unknown as {
           id: string;
           full_name: string | null;
           avatar_url: string | null;
@@ -312,7 +312,7 @@ export default function MarketScreen() {
 
         const worker = workerMap.get(row.user_id)!;
         if (row.is_featured && worker.superpowers.length < 3) {
-          const tl = row.task_library as { name: string } | null;
+          const tl = row.task_library as unknown as { name: string } | null;
           if (tl?.name) worker.superpowers.push(tl.name);
         }
       }
@@ -444,9 +444,9 @@ export default function MarketScreen() {
                 `/(tabs)/direct-hire?worker_id=${item.id}` +
                 `&worker_name=${encodeURIComponent(item.full_name)}`;
               if (trustLevel === 'explorer') {
-                router.push(`/(onboarding)/verify-level-2?destination=${encodeURIComponent(hireDest)}`);
+                router.push(`/(onboarding)/verify-level-2?destination=${encodeURIComponent(hireDest)}` as any);
               } else {
-                router.push(hireDest);
+                router.push(hireDest as any);
               }
             }}
           />
@@ -517,9 +517,9 @@ export default function MarketScreen() {
               ? `/(tabs)/post?category_id=${category_id}`
               : '/(tabs)/post';
             if (trustLevel === 'explorer') {
-              router.push(`/(onboarding)/verify-level-2?destination=${encodeURIComponent(fabDestination)}`);
+              router.push(`/(onboarding)/verify-level-2?destination=${encodeURIComponent(fabDestination)}` as any);
             } else {
-              router.push(fabDestination);
+              router.push(fabDestination as any);
             }
           }}
         >
