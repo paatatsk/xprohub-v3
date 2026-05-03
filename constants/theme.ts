@@ -16,8 +16,8 @@ export const Colors = {
 };
 
 export const Fonts = {
-  heading: 'SpaceGrotesk-Bold',   // All headings — Space Grotesk Bold
-  body:    'Inter',               // All body text — Inter
+  heading: 'SpaceGrotesk_700Bold', // All headings — Space Grotesk Bold
+  body:    'Inter',                // All body text — Inter
 };
 
 export const Spacing = {

@@ -2,6 +2,8 @@ import { Stack, useRouter, useSegments } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useRef } from 'react';
+import { useFonts } from 'expo-font';
+import { SpaceGrotesk_700Bold } from '@expo-google-fonts/space-grotesk';
 import { useAuth } from '../hooks/useAuth';
 import { supabase } from '../lib/supabase';
 
@@ -10,6 +12,7 @@ SplashScreen.preventAutoHideAsync();
 const AUTH_TIMEOUT_MS = 3000;
 
 export default function RootLayout() {
+  const [fontsLoaded] = useFonts({ SpaceGrotesk_700Bold });
   const { session, loading } = useAuth();
   const router = useRouter();
   const segments = useSegments();
@@ -24,8 +27,8 @@ export default function RootLayout() {
   useEffect(() => { segmentsRef.current = segments; }, [segments]);
 
   useEffect(() => {
-    SplashScreen.hideAsync();
-  }, []);
+    if (fontsLoaded) SplashScreen.hideAsync();
+  }, [fontsLoaded]);
 
   useEffect(() => {
     const timer = setTimeout(() => {
