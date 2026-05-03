@@ -98,14 +98,14 @@ The only design direction. No other aesthetic is in use.
 | 4 | Login | `app/(auth)/login.tsx` | Built |
 | 5 | Profile Setup | `app/(onboarding)/profile-setup.tsx` | Built |
 | 6 | Home (Category Grid) | `app/(tabs)/index.tsx` | Category Grid — 20 categories wired to live Supabase data, 2-column layout, tier badges, emoji icons, tapping category routes to Live Market filtered by that category. |
-| 7 | Post a Job | `app/(tabs)/post.tsx` | Form scaffold — category pre-fill, task picker, validation, success state. No DB write yet (Step 4B). |
-| 8 | Worker Match | `app/(tabs)/match.tsx` | Built (mock data) |
-| 9 | Chat | `app/(tabs)/chat.tsx` | Built (mock data) |
-| 10 | Payment / Escrow | `app/(tabs)/payment.tsx` | Built (no Stripe yet) |
-| 11 | Rate / Review | `app/(tabs)/review.tsx` | Built |
-| 12 | Notifications | `app/(tabs)/notifications.tsx` | Built |
-| 13 | Live Market | `app/(tabs)/market.tsx` | Two-feed toggle built — Jobs Feed live from Supabase, Workers Feed empty state. FAB routes to Post a Job with category_id passthrough. |
-| 14 | Belt System | `app/(tabs)/belt.tsx` | Built |
+| 7 | Post a Job | `app/(tabs)/post.tsx` | 704 lines — category-first picker, task picker, budget, timing, submit wired to DB (jobs + job_post_tasks). |
+| 8 | Worker Match | `app/(tabs)/match.tsx` | stub, ~23 lines, TODO Phase 2 |
+| 9 | Chat | `app/(tabs)/chat.tsx` | stub, ~22 lines, TODO Phase 2. Real chat is `job-chat.tsx` (784 lines). |
+| 10 | Payment / Escrow | `app/(tabs)/payment.tsx` | stub, ~23 lines, TODO Step 13 |
+| 11 | Rate / Review | `app/(tabs)/review.tsx` | 481 lines — rating + comment form, wired to Supabase. |
+| 12 | Notifications | `app/(tabs)/notifications.tsx` | stub, ~22 lines, TODO Milestone 4 |
+| 13 | Live Market | `app/(tabs)/market.tsx` | 837 lines — two-feed toggle, Jobs Feed + Workers Feed both wired to Supabase. FAB routes to Post a Job. |
+| 14 | Belt System | `app/(tabs)/belt.tsx` | stub, ~23 lines, TODO Milestone 4 |
 | 15 | Earnings / Wallet | `app/(tabs)/earnings.tsx` | stub, ~23 lines, TODO Phase 2 |
 
 Home = Category Grid hub. HELP WANTED → Post a Job. START EARNING → Live Market. Category card → Live Market filtered by category_id.
@@ -227,9 +227,16 @@ WHERE requires_verification = true AND is_active = true
 ORDER BY category_id, task_code;
 ```
 
-## Recent Migrations
+## Migrations
 - `20260417000001_replace_skills_with_task_library.sql` — Task Library v1.1 (20 categories, 188 tasks)
-- `20260419000001_cleanup_jobs_schema.sql` — Dropped legacy `skills`, `user_skills`, `jobs.skill_id`. Added RLS INSERT/SELECT policies on `job_post_tasks`. Confirmed applied 2026-04-19.
+- `20260419000001_cleanup_jobs_schema.sql` — Dropped legacy `skills`, `user_skills`, `jobs.skill_id`. Added RLS on `job_post_tasks`.
+- `20260419000002_enable_worker_skills_rls.sql` — Public read + auth CRUD on `worker_skills`.
+- `20260419000003_chat_insert_policy.sql` — INSERT policy on `chats` for customers.
+- `20260421000001_add_trust_level.sql` — Added `trust_level` column to `profiles`.
+- `20260424000001_bid_accept_decline_functions.sql` — `accept_bid()` + `decline_bid()` SECURITY DEFINER functions.
+- `20260426000001_job_lifecycle_functions.sql` — `mark_in_progress()` + `mark_completed()` SECURITY DEFINER functions.
+- `20260428000001_step13_payments_schema.sql` — Stripe columns on `profiles`, `idx_payments_job`, `create_payment_record()`, `release_payment()`, amended `mark_completed()` with payment gate.
+- `20260503000001_accept_bid_set_agreed_price.sql` — `accept_bid()` amended to set `jobs.agreed_price = v_bid.proposed_price`.
 
 ## Development Conventions
 
@@ -239,7 +246,7 @@ ORDER BY category_id, task_code;
 - **New migrations**: Place in `supabase/migrations/` with timestamp prefix `YYYYMMDDHHMMSS_description.sql`. Always wrap in `BEGIN`/`COMMIT`.
 - **Seed updates**: Changes to task data go in `supabase/seed/`. Use `ON CONFLICT (task_code) DO NOTHING` for inserts or `DO UPDATE SET ...` for corrections.
 - **task_code rules**: Always 4 characters, zero-padded. No gaps — if a task is retired, its code is reserved and not reissued.
-- **RLS state**: `task_categories` and `task_library` have anon-safe public read policies (safe for unauthenticated browse). `worker_skills` needs auth-restricted RLS policies when wired to the app. `job_post_tasks` has INSERT + SELECT policies as of migration 20260419000001.
+- **RLS state**: `task_categories` and `task_library` have anon-safe public read policies (safe for unauthenticated browse). `worker_skills` has public read + auth CRUD policies (migration 20260419000002). `job_post_tasks` has INSERT + SELECT policies as of migration 20260419000001.
 
 ## Belt System (Workers)
 | Belt | Jobs | Min Rating | Key Unlock |
@@ -341,12 +348,11 @@ whole platform — do not bypass it.
 6. **Every screen answers one question** — no feature creep per screen
 7. **No mock data in production** — connect to Supabase or gate the screen
 8. **Two core loops**: Customer = 3 taps to done · Worker = 2 taps to earn
-9. **Dev Menu** (`dev-menu.tsx`) is `__DEV__` only — never ships to production
-10. **Plan Mode** (`Shift+Tab`) before multi-file changes
-11. **Windows PowerShell** cannot handle `(tabs)` in paths — use File Explorer for those folders
-12. **app.json assets**: splash = `splash-icon.png`, Android icon = `android-icon-foreground.png`
-13. **Dual-role** — no role-specific screen patterns. Any transactional screen must work for any user regardless of which side they're acting on. No "workers-only" or "customers-only" UI.
-14. **Gate philosophy** — gates fire at moment of action only. No persistent Stripe setup banners, no persistent ID prompts, no nags. Nothing surfaces until the user takes the relevant action.
+9. **Plan Mode** (`Shift+Tab`) before multi-file changes
+10. **Windows PowerShell** cannot handle `(tabs)` in paths — use File Explorer for those folders
+11. **app.json assets**: splash = `splash-icon.png`, Android icon = `android-icon-foreground.png`
+12. **Dual-role** — no role-specific screen patterns. Any transactional screen must work for any user regardless of which side they're acting on. No "workers-only" or "customers-only" UI.
+13. **Gate philosophy** — gates fire at moment of action only. No persistent Stripe setup banners, no persistent ID prompts, no nags. Nothing surfaces until the user takes the relevant action.
 
 ## What Is Built
 

@@ -81,7 +81,7 @@ Two-AI workflow: chat-Claude (strategist) writes prompts FOR Claude Code (termin
 
 These need to land in CLAUDE.md or POLISH_PASS:
 
-1. **CLAUDE.md six-change update** approved 2026-05-01, never executed (session ended). Covers dual-role wording, new Platform Architecture section, Progressive Profile System update, Trust Levels table replacement, gate triggers rename, Code Rules 13/14.
+1. **CLAUDE.md six-change update** approved 2026-05-01, never executed (session ended). Covers dual-role wording, new Platform Architecture section, Progressive Profile System update, Trust Levels table replacement, gate triggers rename, Code Rules (Dual-role, Gate philosophy).
 2. **Direct Hire pathway** — drafted POLISH_PASS entry never saved.
 3. **Levels framing as user lifecycle narrative** — never written down.
 4. **Belt System is opt-in** (not structural matching). Currently described as if structural in CLAUDE.md.
