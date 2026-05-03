@@ -6,6 +6,44 @@
 
 ---
 
+## Active Task Blueprint
+
+**Working principle:** Define a task with clear scope. Complete it fully —
+including loose ends, deploys, and tests — before starting the next. No
+parking findings to "deal with later." Intermediate commits within a task are
+checkpoints, not parked work.
+
+### CURRENT TASK: C-4a IMPLEMENTATION — Stripe Connect onboarding feature
+
+**Definition of done — all 13 items must complete before next task begins:**
+
+1. ✅ Stage 1 — `hooks/useStripeStatus.ts` (saved, tsc clean)
+2. → Commit checkpoint: Stage 1 + this status doc update
+3. ⏳ Stage 2 — `app/(tabs)/stripe-connect.tsx` (the screen)
+4. → Commit checkpoint
+5. ⏳ Stage 3 — `app/stripe-return.tsx` + `app/stripe-refresh.tsx` redirects
+6. → Commit checkpoint
+7. ⏳ Stage 4 — `app/(tabs)/_layout.tsx` + `app/_layout.tsx` edits
+8. → Commit checkpoint + full-codebase `tsc --noEmit` integration check
+9. ⏳ Deploy `create-stripe-account` + `create-onboarding-link` Edge Functions
+   to remote Supabase
+10. ⏳ Apply migration `20260503000001_accept_bid_set_agreed_price.sql`
+    (committed in `1ea262d`) to remote Supabase
+11. ⏳ iPhone smoke test — verify all 4 screen states render correctly
+12. → Final commit if any test reveals fixes
+13. ⏳ Update this Active Task Blueprint marking C-4a complete and defining
+    the next task
+
+### NEXT TASK (locked, do not start until C-4a is fully done):
+
+**Doc reconciliation cleanup batch.** Eleven pending findings from the
+2026-05-03 reconciliation pass — deprecate `NEW_CHAT_PROMPT.md`, refresh
+`SESSION_HANDOUT.md` build state section, plus 9 cosmetic findings.
+Definition of done: all 11 closed, single coordinated commit, this blueprint
+updated.
+
+---
+
 ## What's Built and Working
 
 ### Foundation (Milestones 1–2)
@@ -19,7 +57,8 @@ Splash → welcome → signup → login → profile setup → home → Live Mark
   - ✅ C-2 `create-stripe-account` Edge Function (commit `865278b`)
   - ✅ C-3 `create-onboarding-link` Edge Function (commit `2cddce8`)
   - ✅ C-4a design doc, 909 lines (commit `76ce55e`)
-  - ⏳ **C-4a implementation — NEXT after doc reconciliation**
+  - 🟡 **C-4a implementation — in progress, staged build:**
+    (See Active Task Blueprint above for stage-by-stage definition of done)
   - ⏳ C-4b apply.tsx Stripe gate replacement
   - ⏳ C-5 deep link return integration
   - ⏳ C-6 `account.updated` webhook handler implementation
