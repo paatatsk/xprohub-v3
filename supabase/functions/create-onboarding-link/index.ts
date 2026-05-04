@@ -33,8 +33,9 @@ import { stripe } from '../_shared/stripe-client.ts'
 // Stripe deep link URLs — hardcoded to prevent caller-supplied redirect
 // injection. Mobile deep link schemes are fixed by app bundle identifier
 // and do not vary between environments.
-const RETURN_URL  = 'xprohub://stripe-return'
-const REFRESH_URL = 'xprohub://stripe-refresh'
+const FUNC_BASE   = `${Deno.env.get('SUPABASE_URL')}/functions/v1/stripe-redirect`
+const RETURN_URL  = `${FUNC_BASE}?type=return`
+const REFRESH_URL = `${FUNC_BASE}?type=refresh`
 
 // Validate required env vars at module load time (fail-fast on misconfiguration).
 // SUPABASE_URL, SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY are auto-injected

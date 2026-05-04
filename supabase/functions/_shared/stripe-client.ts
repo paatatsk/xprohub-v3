@@ -18,9 +18,7 @@ if (!stripeSecretKey) {
   )
 }
 
-export const stripe: Stripe = new Stripe(stripeSecretKey, {
-  apiVersion: '2024-11-20',
-})
+export const stripe: Stripe = new Stripe(stripeSecretKey)
 
 export const cryptoProvider: Stripe.CryptoProvider =
   Stripe.createSubtleCryptoProvider()

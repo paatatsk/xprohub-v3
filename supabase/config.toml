@@ -438,3 +438,11 @@ enabled = true
 verify_jwt = true
 import_map = "./functions/create-onboarding-link/deno.json"
 entrypoint = "./functions/create-onboarding-link/index.ts"
+
+[functions.stripe-redirect]
+enabled = true
+# Stripe redirects from browser after onboarding — no JWT present.
+# This function serves an HTML page that deep-links back into the app.
+verify_jwt = false
+import_map = "./functions/stripe-redirect/deno.json"
+entrypoint = "./functions/stripe-redirect/index.ts"
