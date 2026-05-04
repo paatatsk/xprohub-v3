@@ -7,7 +7,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Colors, Radius, Spacing } from '../../constants/theme';
 import { supabase } from '../../lib/supabase';
-import { useTrustLevel } from '../../hooks/useTrustLevel';
+import { useStripeStatus } from '../../hooks/useStripeStatus';
 
 // Apply — worker submits a bid on a job
 // Params: job_id (uuid)
@@ -46,7 +46,7 @@ function resolveFinalMessage(
 export default function ApplyScreen() {
   const router     = useRouter();
   const { job_id } = useLocalSearchParams<{ job_id: string }>();
-  const { trustLevel } = useTrustLevel();
+  const { chargesEnabled, loading: stripeLoading } = useStripeStatus();
 
   // Data
   const [loading, setLoading]               = useState(true);
@@ -183,10 +183,10 @@ export default function ApplyScreen() {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) { setSubmitError('Session expired. Please sign in again.'); return; }
 
-    // Belt-and-suspenders gate (primary fires at Job Detail tap)
-    if (trustLevel === 'explorer') {
-      router.replace(
-        `/(onboarding)/verify-level-2?destination=${encodeURIComponent(`/(tabs)/apply?job_id=${job_id}`)}` as any
+    // Stripe gate — worker must have charges enabled to apply
+    if (!stripeLoading && !chargesEnabled) {
+      router.push(
+        `/(tabs)/stripe-connect?returnTo=${encodeURIComponent(`/(tabs)/apply?job_id=${job_id}`)}` as any
       );
       return;
     }
