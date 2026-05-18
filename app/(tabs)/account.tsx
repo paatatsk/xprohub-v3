@@ -17,6 +17,7 @@ export default function AccountScreen() {
   const router = useRouter();
   const { clearCredentials } = useBiometrics();
   const appVersion = Constants.expoConfig?.version ?? '1.0.0';
+  const [isDeleting, setIsDeleting] = useState(false);
 
   // ── Blocked users ──────────────────────────────────────────
   const [blockedUsers, setBlockedUsers] = useState<{ id: string; blocked_id: string; full_name: string }[]>([]);
@@ -65,8 +66,57 @@ export default function AccountScreen() {
 
   function handleDeleteAccount() {
     Alert.alert(
-      'Coming Soon',
-      'Account deletion will be available in a future update.',
+      'Delete Your Account?',
+      'This is permanent. Your profile, jobs, and payment history will be anonymized. You cannot undo this.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete My Account',
+          style: 'destructive',
+          onPress: async () => {
+            setIsDeleting(true);
+            try {
+              const { data, error: fnError } = await supabase.functions.invoke(
+                'delete-account',
+                { body: {} },
+              );
+
+              if (fnError) {
+                Alert.alert(
+                  'Connection Error',
+                  "Couldn't reach our servers. Check your connection and try again.",
+                );
+                return;
+              }
+
+              if (data?.error === 'active_jobs' || data?.error === 'held_payments') {
+                Alert.alert('Active Commitments', data.message);
+                return;
+              }
+
+              if (data?.error) {
+                Alert.alert(
+                  'Deletion Failed',
+                  data.message ?? 'Account deletion could not be completed. Please try again or contact hello@xprohub.com.',
+                );
+                return;
+              }
+
+              // Success — sign out, clear biometrics, route to welcome
+              await supabase.auth.signOut();
+              await clearCredentials();
+              router.replace('/(onboarding)/welcome');
+            } catch (err) {
+              Alert.alert(
+                'Deletion Failed',
+                'Something went wrong. Please try again or contact hello@xprohub.com.',
+              );
+            } finally {
+              setIsDeleting(false);
+            }
+          },
+        },
+      ],
     );
   }
 
@@ -147,8 +197,13 @@ export default function AccountScreen() {
           <Text style={styles.signOutText}>SIGN OUT</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.deleteBtn} onPress={handleDeleteAccount} activeOpacity={0.7}>
-          <Text style={styles.deleteText}>DELETE ACCOUNT</Text>
+        <TouchableOpacity
+          style={[styles.deleteBtn, isDeleting && { opacity: 0.5 }]}
+          onPress={handleDeleteAccount}
+          activeOpacity={0.7}
+          disabled={isDeleting}
+        >
+          <Text style={styles.deleteText}>{isDeleting ? 'Deleting…' : 'DELETE ACCOUNT'}</Text>
         </TouchableOpacity>
 
       </ScrollView>
